@@ -45,15 +45,15 @@ public class CommonHelperMethods
 
 	public static String reverseString(String s)
 	{
-		String reversedString = "";
-		//reverse the string
-		for (int i = s.length()-1; i >= 0; i--)
+		StringBuilder reversedString = new StringBuilder();
+		// Reverse the string
+		for (int i = s.length() - 1; i >= 0; i--)
 		{
 			char c = s.charAt(i);
-			//Process char
-			reversedString += c;
+			// Append char to StringBuilder
+			reversedString.append(c);
 		}
-		return reversedString;
+		return reversedString.toString();
 	}
 
 	public String signed32BitIntToBinaryString(int input)
