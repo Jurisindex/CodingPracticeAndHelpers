@@ -11,7 +11,7 @@ class SplitConcatenatedStringsValidatorTest {
     void splitLoopedStringTest1()
     {
         String[] strs = {"abc","xyz"};
-        String result = SplitConcatenatedStringsValidator.splitLoopedString(strs);
+        String result = SplitConcatenatedStringsValidator.splitLoopedStringByWords(strs);
         assertEquals(result, "zyxcba");
     }
 
@@ -19,7 +19,7 @@ class SplitConcatenatedStringsValidatorTest {
     void splitLoopedStringTest2()
     {
         String[] strs = {"efg","xyz","abc","xyz"};
-        String result = SplitConcatenatedStringsValidator.splitLoopedString(strs);
+        String result = SplitConcatenatedStringsValidator.splitLoopedStringByWords(strs);
         assertEquals(result, "zyxgfezyxcba");
     }
 }

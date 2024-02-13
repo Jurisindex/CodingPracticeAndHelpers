@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class SplitConcatenatedStringsValidator
 {
-    public static String splitLoopedString(String[] strs)
+    public static String splitLoopedStringByWords(String[] strs)
     {
         //["abc","xyz","efg","xyz"] => "xyzgfezyxcba
         //For each string, find the lexigraphically largest version (reversed or not)
