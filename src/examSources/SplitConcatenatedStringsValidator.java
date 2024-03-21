@@ -106,6 +106,8 @@ public class SplitConcatenatedStringsValidator
 
         StringBuilder firstHalf = new StringBuilder();
         StringBuilder secondHalf = new StringBuilder();
+        ArrayList<Character> alphaUpper = new ArrayList<>();
+        //alphaUpper.indexOf();
         for(int i = 0; i < strs.length; i++)
         {
             String current = strs[i];

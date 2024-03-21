@@ -11,12 +11,7 @@ public class Main {
 
 	public static void main (String [] args) throws Exception
 	{
-		Pair asdf;
-		Supplier<String> i = () -> "Car";
-		Consumer<String> c = x -> System.out.print(x.toLowerCase());
-		Consumer<String> d = x -> System.out.print(x.toUpperCase());
-		c.andThen(d).accept(i.get());
-		System.out.println();
+		//getHitProbability
 	}
 }
 
