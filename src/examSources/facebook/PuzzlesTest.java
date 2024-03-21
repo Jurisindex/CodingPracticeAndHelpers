@@ -33,4 +33,22 @@ class PuzzlesTest {
         // Expected result: 2 (maximum range and gap, only 2 seats occupied)
 
     }
+
+    @Test
+    void getArtisticPhotographCount() {
+        int result1 = puzzles.getArtisticPhotographCount(5, "APABA",1,2);
+        assertEquals(1, result1);
+        int result2 = puzzles.getArtisticPhotographCount(8, ".PBAAP.B",1,3);
+        assertEquals(3, result2);
+        int result3 = puzzles.getArtisticPhotographCount(10, "PAA.B.BP.A", 2, 3);
+        assertEquals(1, result3);
+        int result4 = puzzles.getArtisticPhotographCount(10, "BBAAPPAABB", 1, 55);
+        assertEquals(16, result4);
+        int result5 = puzzles.getArtisticPhotographCount(33, ".A.A.A.B.B.A.A.P.P.A.A.B.B.A.A.A.", 1, 55);
+        assertEquals(16, result5);
+        int result6 = puzzles.getArtisticPhotographCount(7, "ABAPB.A", 1, 2);
+        assertEquals(1, result6);
+        int result7 = puzzles.getArtisticPhotographCount(9, "AP.A.BAPA", 2, 3);
+        assertEquals(1, result7);
+    }
 }
