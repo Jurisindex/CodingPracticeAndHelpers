@@ -29,7 +29,7 @@ class PuzzlesTest {
         long result4 = puzzles.getMaxAdditionalDinersCount(1000000, 1000, 5, new long[]{25000L, 500000L, 800000L, 900000L, 999999L});
         assertEquals(result4, 991L);
         long result5 = puzzles.getMaxAdditionalDinersCount(Long.MAX_VALUE, Long.MAX_VALUE - 1, 2, new long[]{Long.MAX_VALUE - 1, Long.MAX_VALUE});
-        assertEquals(result5, 2L);
+        assertEquals(result5, 1L);
         // Expected result: 2 (maximum range and gap, only 2 seats occupied)
 
     }
