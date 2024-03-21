@@ -19,7 +19,7 @@ public class Dota2SenateValidator
                 {
                     i--;
                 }
-                senate.remove(nextOppositionIndex);
+                //.remove(nextOppositionIndex);
             }
         }
         return String.valueOf(senate.charAt(0));
