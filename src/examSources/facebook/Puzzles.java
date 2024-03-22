@@ -96,26 +96,6 @@ public class Puzzles {
         return artisticShots;
     }
 
-    public int getArtisticPhotographCountOnePass(int N, String C, int X, int Y) {
-        int artisticShots = 0;
-
-        for(int i = 0; i < C.length(); i++){
-            if(C.charAt(i) == 'P') {
-                //look forward X=>Y
-                ArrayList<Integer> inRangeActors = getListOfCharactersInRange(C, X, Y, i, 'A', true, false);
-                for(Integer actorIndex : inRangeActors)
-                    artisticShots += getListOfCharactersInRange(C, X, Y, actorIndex, 'B', true, false).size();
-            }
-            else if(C.charAt(i) == 'B') {
-                //look forward X=>Y
-                ArrayList<Integer> inRangeActors = getListOfCharactersInRange(C, X, Y, i, 'A', true, false);
-                for(Integer actorIndex : inRangeActors)
-                    artisticShots += getListOfCharactersInRange(C, X, Y, actorIndex, 'P', true, false).size();
-            }
-        }
-        return artisticShots;
-    }
-
     private ArrayList<Integer> getListOfCharactersInRange(String S, int X, int Y, int index, Character c, boolean lookForward, boolean lookBack)
     {
         ArrayList<Integer> resultIndecies = new ArrayList<>();
@@ -131,6 +111,51 @@ public class Puzzles {
         }
         return resultIndecies;
     }
+
+    public int getArtisticPhotographCountOnePass(int N, String C, int X, int Y) {
+        int artisticShots = 0;
+        ArrayList<Integer> pIndex = new ArrayList<>();
+        ArrayList<Integer> aIndex = new ArrayList<>();
+        ArrayList<Integer> bIndex = new ArrayList<>();
+
+        for(int i = 0; i < C.length(); i++){
+            if(C.charAt(i) == 'P') {
+                pIndex.add(i);
+            }
+            if(C.charAt(i) == 'A') {
+                aIndex.add(i);
+            }
+            if(C.charAt(i) == 'B') {
+                bIndex.add(i);
+            }
+        }
+        for(int i = 0; i < pIndex.size(); i++)
+        {
+            int producerIndex = pIndex.get(i);
+            ArrayList<Integer> relevantActors = getListOfCharactersInRange(aIndex, X, Y, producerIndex, null);
+            for(Integer actorIndex : relevantActors)
+                if(actorIndex < producerIndex)
+                    artisticShots += getListOfCharactersInRange(bIndex, X, Y, actorIndex, false).size();
+                else
+                    artisticShots += getListOfCharactersInRange(bIndex, X, Y, actorIndex, true).size();
+        }
+        return artisticShots;
+    }
+
+    private ArrayList<Integer> getListOfCharactersInRange(ArrayList<Integer> indexOccurrences, int X, int Y, int index, Boolean direction) {
+        ArrayList<Integer> resultIndecies = new ArrayList<>();
+        for(int i = 0; i < indexOccurrences.size(); i++) {
+            int nextChainIndex = indexOccurrences.get(i);
+            if((direction == null || !direction) && nextChainIndex >= index-Y && nextChainIndex <= index-X){
+                resultIndecies.add(nextChainIndex);
+            }
+            else if((direction == null || direction) && nextChainIndex <= index+Y && nextChainIndex >= index+X){
+                resultIndecies.add(nextChainIndex);
+            }
+        }
+        return resultIndecies;
+    }
+
 
     public int getMaximumEatenDishCount(int N, int[] D, int K) {
         int dishesEaten = 0;
