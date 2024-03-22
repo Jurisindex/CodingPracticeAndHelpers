@@ -96,6 +96,26 @@ public class Puzzles {
         return artisticShots;
     }
 
+    public int getArtisticPhotographCountOnePass(int N, String C, int X, int Y) {
+        int artisticShots = 0;
+
+        for(int i = 0; i < C.length(); i++){
+            if(C.charAt(i) == 'P') {
+                //look forward X=>Y
+                ArrayList<Integer> inRangeActors = getListOfCharactersInRange(C, X, Y, i, 'A', true, false);
+                for(Integer actorIndex : inRangeActors)
+                    artisticShots += getListOfCharactersInRange(C, X, Y, actorIndex, 'B', true, false).size();
+            }
+            else if(C.charAt(i) == 'B') {
+                //look forward X=>Y
+                ArrayList<Integer> inRangeActors = getListOfCharactersInRange(C, X, Y, i, 'A', true, false);
+                for(Integer actorIndex : inRangeActors)
+                    artisticShots += getListOfCharactersInRange(C, X, Y, actorIndex, 'P', true, false).size();
+            }
+        }
+        return artisticShots;
+    }
+
     private ArrayList<Integer> getListOfCharactersInRange(String S, int X, int Y, int index, Character c, boolean lookForward, boolean lookBack)
     {
         ArrayList<Integer> resultIndecies = new ArrayList<>();
@@ -105,10 +125,143 @@ public class Puzzles {
             }
         }
         if(lookBack){
-            for(int i = Math.max(index-X,0); i >= Math.max(index-Y,0); i--){
+            for(int i = Math.max(index-X,-1); i >= Math.max(index-Y,0); i--){
                 if (S.charAt(i) == c) resultIndecies.add(i);
             }
         }
         return resultIndecies;
+    }
+
+    public int getMaximumEatenDishCount(int N, int[] D, int K) {
+        int dishesEaten = 0;
+        ArrayList<Integer> dishIDs = new ArrayList<>();
+        Set<Integer> dishCache = new HashSet<>();
+
+        for (int i = 0; i < D.length; i++) {
+            int dishId = D[i];
+            if(dishCache.contains(dishId)){
+                continue;
+            }
+            else {
+                if(dishCache.size() == K) {
+                    //forget the oldest dish
+                    dishCache.remove(dishIDs.remove(0));
+                }
+                //sample the new dish!
+                dishIDs.add(dishId);
+                dishCache.add(dishId);
+                dishesEaten++;
+            }
+        }
+        return dishesEaten;
+    }
+
+    public long getMinCodeEntryTime(int N, int M, int[] C) {
+        int currentPosition = 0;
+        long secondsPassed = 0L;
+        for(int i = 0; i < C.length; i++) {
+            int indexToGoTo = C[i]-1;
+            int overflowDistance = Math.min(N-indexToGoTo+currentPosition, N-currentPosition+indexToGoTo);
+            int distance = Math.min(overflowDistance, Math.abs(indexToGoTo-currentPosition));
+            currentPosition = indexToGoTo;
+            secondsPassed = secondsPassed + (long) distance;
+        }
+        return secondsPassed;
+    }
+
+    public int getMinProblemCount(int N, int[] S) {
+        boolean oddValue = false;
+        int highestScore = 0;
+        for(int i = 0; i < S.length; i++) {
+            highestScore = Math.max(highestScore, S[i]);
+            if(S[i]%2 == 1) oddValue = true;
+        }
+        return highestScore/2 + (oddValue ? 1 : 0);
+    }
+
+    public int getMinimumDeflatedDiscCount(int N, int[] R) {
+        //Count backwards, deflate minimally needed, if >=, as we iterate backwards.
+        //If deflated and need to deflate again, return -1
+        boolean deflated = false;
+        int latestRingSize = R[R.length-1];
+        int amountDeflated = 0;
+        //From R.length-2 => 1:
+        for(int i = R.length-2; i >= 0; i-- ) {
+            int ringEntrySize = R[i];
+            if(ringEntrySize >= latestRingSize)
+            {
+                latestRingSize = latestRingSize-1;
+                if(latestRingSize < 1) return -1;
+                amountDeflated++;
+            }
+            else{
+                latestRingSize = ringEntrySize;
+            }
+        }
+        return amountDeflated;
+    }
+
+    public int getUniformIntegerCountInInterval(long A, long B) {
+        int uniformNumbers = 0;
+        int offsets = 2;
+
+        //determine if A is uniform or under//67 no, 66 yes, 65 yes
+        //determine if B uniform will be reached //67 yes, 65 no, 66 no
+        ArrayList<Integer> powerOfTensDigitsA = new ArrayList<>();
+        ArrayList<Integer> powerOfTensDigitsB = new ArrayList<>();
+        while(A > 0){
+            powerOfTensDigitsA.add((int) (A%10L));
+            A = A/10L;
+        }
+        while(B > 0){
+            powerOfTensDigitsB.add((int) (B%10L));
+            B = B/10L;
+        }
+        //is Uniform or will reach uniformity
+        int digitA = powerOfTensDigitsA.get(powerOfTensDigitsA.size()-1);
+        for(int i = powerOfTensDigitsA.size()-2; i >= 0; i--){
+            if(powerOfTensDigitsA.get(i).equals(digitA))
+            {
+                continue;
+            }
+            if(powerOfTensDigitsA.get(i) > digitA){
+                offsets--;
+
+            }
+            break;
+        }
+        int digitB = powerOfTensDigitsB.get(powerOfTensDigitsB.size()-1);
+        for(int i = powerOfTensDigitsB.size()-2; i >= 0; i--){
+            if(powerOfTensDigitsB.get(i).equals(digitB))
+            {
+                continue;
+            }
+            if(powerOfTensDigitsB.get(i) < digitB){
+                offsets--;
+            }
+            break;
+        }
+        //are A and B of same 10s power and largest is same #? Minus 1.
+        if(offsets == 2 && powerOfTensDigitsA.size() == powerOfTensDigitsB.size() && digitA == digitB) {
+            offsets--;  //we're double counting the same one (ex 665=>667. We'd count 666 twice here)
+        }
+
+        //Create data structure like this: ex 7 => 665
+        //{7}, {5,6,6}
+        //Here we see 7 has 2 more it can reach. 8 and 9. For the tens part, it's not the last digit, so we count all 9
+        //At the hundreds part, since we dont subtract it, we count 5, and the offset takes care of the current 100s (600s) uniform check
+        //If we did {7,0,6}, {5,6,6}, for 607 => 665, we consider 665's 5 reached in the 100s already to be subtracted from 607's 5 reached, equalling 0. If it was =>667, offset would be positive.
+
+        int powerDiff = powerOfTensDigitsB.size() - powerOfTensDigitsA.size();
+        //what we want to do is: powerDiff*9 tbh. Then, we also do lastIndex Analysis if different
+        //81 => 1005: 4 - 2 [1,8]vs[5,0,0,1]
+        if(powerDiff > 0) {
+            uniformNumbers += (9-digitA)+(digitB-1)+offsets+((powerDiff-1)*9);
+        }
+        // 1005 => 2281: 4 - 2 [5,0,0,1]vs[1,8,2,2]
+        else {
+            uniformNumbers += Math.max(digitB-digitA-1, 0)+offsets;
+        }
+        return uniformNumbers;
     }
 }
