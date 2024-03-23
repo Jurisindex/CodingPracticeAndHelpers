@@ -119,4 +119,24 @@ class PuzzlesTest {
         int result5 = puzzles.getUniformIntegerCountInInterval(7L, 6665L);
         assertEquals(26, result5);
     }
+
+    @Test
+    void getSecondsRequired() {
+        long result1 = puzzles.getSecondsRequired(3, 1, new long[]{1});
+        assertEquals(2L, result1);
+        long result2 = puzzles.getSecondsRequired(6, 3, new long[]{5,2,4});
+        assertEquals(4L, result2);
+    }
+
+    @Test
+    void getMaxExpectedProfit() {
+        double result1 = puzzles.getMaxExpectedProfit(5, new int[]{10,2,8,6,4}, 5, 0.0);
+        assertEquals(25.000000, result1);
+        double result2 = puzzles.getMaxExpectedProfit(5, new int[]{10,2,8,6,4}, 5, 1.0);
+        assertEquals(9.000000, result2);
+        double result3 = puzzles.getMaxExpectedProfit(5, new int[]{10,2,8,6,4}, 3, 0.5);
+        assertEquals(17.000000, result3);
+        double result4 = puzzles.getMaxExpectedProfit(5, new int[]{10,2,8,6,4}, 3, 0.15);
+        assertEquals(20.108250, result4);
+    }
 }

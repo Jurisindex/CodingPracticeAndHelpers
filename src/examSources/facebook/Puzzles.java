@@ -2,6 +2,7 @@ package examSources.facebook;
 
 import helperClasses.Pair;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class Puzzles {
@@ -288,5 +289,70 @@ public class Puzzles {
             uniformNumbers += Math.max(digitB-digitA-1, 0)+offsets;
         }
         return uniformNumbers;
+    }
+
+    public long getSecondsRequired(long N, int F, long[] P) {
+        Arrays.sort(P);
+        ArrayList<Long> frogIndecies = new ArrayList<>(Arrays.asList(Arrays.stream(P).boxed().toArray(Long[]::new)));
+//        ArrayList<Long> frogIndecies = new ArrayList<>();
+//        //insertion-sort the frogs
+//        for(int i = 0; i < P.length; i++) {
+//            long frogPos = P[i];
+//            int indexInsertion = 0;
+//            for(int j = 0; j < frogIndecies.size(); j++) {
+//                if(frogPos > frogIndecies.get(j)){
+//                    indexInsertion = j+1;
+//                }
+//                else break;
+//            }
+//            frogIndecies.add(indexInsertion, frogPos);
+//        }
+        long secondsRequired = 0L;
+        for(int i = 0; i < frogIndecies.size()-1; i++){
+            // F1 => F2, F2-F1-1 hops.
+            long frogPos1 = frogIndecies.get(i);
+            long frogPos2 = frogIndecies.get(i+1);
+            //index [99], wants to get to [999], next frog. 999-99 = 900. But, she has 100 frogs around em. Still takes 900 leaps, just all frogs move too
+            long secondsNeededForDistanceClosing = (frogPos2 - frogPos1) - 1L; //6 and 5 are distance closed, but 1L still
+            secondsRequired += secondsNeededForDistanceClosing;
+        }
+        secondsRequired += (N-frogIndecies.get(frogIndecies.size()-1)) - 1L + (long) F;
+        return secondsRequired;
+    }
+
+    public double getMaxExpectedProfit(int N, int[] V, int C, double S) {
+        Map<Integer, Double> itemsAndChanceStillThere = new HashMap();
+        int valueOfItmesInRoom = 0;
+        double expectedValueOfItemsInRoom = 0.0;
+        double currentProfit = 0.0;
+        //Map<Integer, Integer> dayAndItemValueAdded = new HashMap<>();
+        for(int i = 0; i < V.length; i++)
+        {
+            //day starts
+            valueOfItmesInRoom += V[i];
+            expectedValueOfItemsInRoom += V[i];
+            itemsAndChanceStillThere.put(V[i], 1.0);
+            //should I enter and take profit?
+            if(valueOfItmesInRoom > C || expectedValueOfItemsInRoom > C){
+                currentProfit += valueOfItmesInRoom-C;
+                //Reset tracking vars
+                valueOfItmesInRoom = 0;
+                expectedValueOfItemsInRoom = 0.0;
+                itemsAndChanceStillThere = new HashMap<>();
+            }
+            //The thief may come
+            Map<Integer, Double> updatedItemChances = new HashMap();
+            for(Map.Entry<Integer,Double> item : itemsAndChanceStillThere.entrySet()){
+                int itemBaseValue = item.getKey();
+                double chanceStillThere = item.getValue();
+                double currentItemEV = itemBaseValue*chanceStillThere;
+                chanceStillThere *= (1.0 - S);
+                double newItemEV = itemBaseValue*chanceStillThere;
+                expectedValueOfItemsInRoom -= currentItemEV - newItemEV;
+                updatedItemChances.put(itemBaseValue, chanceStillThere);
+            }
+            itemsAndChanceStillThere = updatedItemChances;
+        }
+        return currentProfit;
     }
 }
