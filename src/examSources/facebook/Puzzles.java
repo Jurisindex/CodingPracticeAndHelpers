@@ -321,38 +321,79 @@ public class Puzzles {
     }
 
     public double getMaxExpectedProfit(int N, int[] V, int C, double S) {
-        Map<Integer, Double> itemsAndChanceStillThere = new HashMap();
-        int valueOfItmesInRoom = 0;
-        double expectedValueOfItemsInRoom = 0.0;
-        double currentProfit = 0.0;
-        //Map<Integer, Integer> dayAndItemValueAdded = new HashMap<>();
-        for(int i = 0; i < V.length; i++)
-        {
-            //day starts
-            valueOfItmesInRoom += V[i];
-            expectedValueOfItemsInRoom += V[i];
-            itemsAndChanceStillThere.put(V[i], 1.0);
-            //should I enter and take profit?
-            if(valueOfItmesInRoom > C || expectedValueOfItemsInRoom > C){
-                currentProfit += valueOfItmesInRoom-C;
-                //Reset tracking vars
-                valueOfItmesInRoom = 0;
-                expectedValueOfItemsInRoom = 0.0;
-                itemsAndChanceStillThere = new HashMap<>();
+        Stack<Integer> daysEntered = new Stack<>();
+        daysEntered.add(N-1);
+        //starting from the back, assume we go in last day
+        double lastDayEnteredProfit = V[N-1]-C;
+
+        for(int i = N-2; i >= 0; i--) {
+            int earliestCurrentDayEntered = daysEntered.peek();
+            //Seeing previous day
+            //What if we entered that day
+            double profitIfEntered = V[i]-C;
+            double expectedValIfSleptOn = V[i]*Math.pow((1.0-S), (earliestCurrentDayEntered-i));
+            if(profitIfEntered < 0.0){
+                //tack on expected value to the next day we enter
+                lastDayEnteredProfit += expectedValIfSleptOn;
             }
-            //The thief may come
-            Map<Integer, Double> updatedItemChances = new HashMap();
-            for(Map.Entry<Integer,Double> item : itemsAndChanceStillThere.entrySet()){
-                int itemBaseValue = item.getKey();
-                double chanceStillThere = item.getValue();
-                double currentItemEV = itemBaseValue*chanceStillThere;
-                chanceStillThere *= (1.0 - S);
-                double newItemEV = itemBaseValue*chanceStillThere;
-                expectedValueOfItemsInRoom -= currentItemEV - newItemEV;
-                updatedItemChances.put(itemBaseValue, chanceStillThere);
+            else {
+                //if not worth it to enter on Day i. Risk the theft.
+                if(lastDayEnteredProfit+profitIfEntered < lastDayEnteredProfit+expectedValIfSleptOn){
+                    lastDayEnteredProfit += expectedValIfSleptOn;
+                }
+                //It actually IS worth it to go in on Day i, and not risk theft.
+                else {
+                    if(daysEntered.size() == 1) {
+                        lastDayEnteredProfit = Math.max(0,lastDayEnteredProfit);
+                    }
+                    lastDayEnteredProfit +=  profitIfEntered;
+                    daysEntered.add(i);
+                }
             }
-            itemsAndChanceStillThere = updatedItemChances;
         }
-        return currentProfit;
+        return Math.max(0.0,lastDayEnteredProfit);
+
+        //Iterate from the back
+
+//        Map<Integer, Double> itemsAndChanceStillThere = new HashMap();
+//        double expectedValueOfItemsInRoom = 0.0;
+//        double currentProfit = 0.0;
+//        Map<Integer, Integer> dayAndItemValueAdded = new HashMap<>();
+//        for(int i = 0; i < V.length; i++)
+//        {
+//            if(V[i] == 0)
+//                continue;
+//            //day starts
+//            expectedValueOfItemsInRoom += V[i];
+//            itemsAndChanceStillThere.put(V[i], 1.0);
+//            //should I enter and take profit?
+//            if(S > 0.0 && expectedValueOfItemsInRoom > C){
+//                currentProfit += expectedValueOfItemsInRoom-C;
+//                //Reset tracking vars
+//                expectedValueOfItemsInRoom = 0.0;
+//                itemsAndChanceStillThere = new HashMap<>();
+//            }
+//            //The thief may come
+//            Map<Integer, Double> updatedItemChances = new HashMap();
+//            for(Map.Entry<Integer,Double> item : itemsAndChanceStillThere.entrySet()){
+//                int itemBaseValue = item.getKey();
+//                double chanceStillThere = item.getValue();
+//                double currentItemEV = itemBaseValue*chanceStillThere;
+//                chanceStillThere *= (1.0 - S);
+//                double newItemEV = itemBaseValue*chanceStillThere;
+//                expectedValueOfItemsInRoom -= currentItemEV - newItemEV;
+//                if(chanceStillThere > 0.0)
+//                    updatedItemChances.put(itemBaseValue, chanceStillThere);
+//            }
+//            itemsAndChanceStillThere = updatedItemChances;
+//        }
+//        if(expectedValueOfItemsInRoom > C)
+//            currentProfit += expectedValueOfItemsInRoom-C;
+//        return currentProfit;
+    }
+
+    public int getSecondsRequired(int R, int C, char[][] G) {
+        // Write your code here
+        return 0;
     }
 }

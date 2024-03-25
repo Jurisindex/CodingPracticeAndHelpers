@@ -130,13 +130,40 @@ class PuzzlesTest {
 
     @Test
     void getMaxExpectedProfit() {
+        double epsilon = 0.000001;
         double result1 = puzzles.getMaxExpectedProfit(5, new int[]{10,2,8,6,4}, 5, 0.0);
-        assertEquals(25.000000, result1);
+        assertTrue(Math.abs(25.000000 - result1) < epsilon);
         double result2 = puzzles.getMaxExpectedProfit(5, new int[]{10,2,8,6,4}, 5, 1.0);
-        assertEquals(9.000000, result2);
+        assertTrue(Math.abs(9.000000 - result2) < epsilon);
         double result3 = puzzles.getMaxExpectedProfit(5, new int[]{10,2,8,6,4}, 3, 0.5);
-        assertEquals(17.000000, result3);
+        assertTrue(Math.abs(17.000000 - result3) < epsilon);
         double result4 = puzzles.getMaxExpectedProfit(5, new int[]{10,2,8,6,4}, 3, 0.15);
-        assertEquals(20.108250, result4);
+        assertTrue(Math.abs(20.108250 - result4) < epsilon);
+        double dontgoinanyday = puzzles.getMaxExpectedProfit(5, new int[]{1,1,1,1,1}, 10, 0.85);
+        assertTrue(Math.abs(0.0 - dontgoinanyday) < epsilon);
+        double goineveryday = puzzles.getMaxExpectedProfit(5, new int[]{99,99,99,99,99}, 10, 0.85);
+        assertTrue(Math.abs(445 - goineveryday) < epsilon);
+        double dontgoinonlyfirstandlastday = puzzles.getMaxExpectedProfit(5, new int[]{1,99,99,99,1}, 10, 0.85);
+        assertTrue(Math.abs(267.15 - dontgoinonlyfirstandlastday) < epsilon);
+        double onlyWorthAtEndButNoSteal = puzzles.getMaxExpectedProfit(10, new int[]{1,1,1,1,1,1,1,1,1,100}, 10, 0.0);
+        assertTrue(Math.abs(99 - onlyWorthAtEndButNoSteal) < epsilon);
+        double only1ProfitAtEnd = puzzles.getMaxExpectedProfit(10, new int[]{10,10,10,10,10,10,10,10,10,11}, 100, 0.0);
+        assertTrue(Math.abs(1 - only1ProfitAtEnd) < epsilon);
+        double ending0ButWorthToTake = puzzles.getMaxExpectedProfit(12, new int[]{10,10,10,10,10,10,10,10,10,11,10,0}, 100, 0.0);
+        assertTrue(Math.abs(11 - ending0ButWorthToTake) < epsilon);
+
+
+    }
+
+    @Test
+    void getSecondsRequiredPortals() {
+        int sample1 = puzzles.getSecondsRequired(3, 3, new char[][]{{'.','E','.'},{'.','#','E'},{'.','S','E'}});
+        assertEquals(4, sample1);
+        int sample2 = puzzles.getSecondsRequired(3, 4, new char[][]{{'a','.','S','a'},{'#','#','#','#'},{'E','b','.','b'}});
+        assertEquals(-1, sample2);
+        int sample3 = puzzles.getSecondsRequired(3, 4, new char[][]{{'a','S','.','b'},{'#','#','#','#'},{'E','b','.','a'}});
+        assertEquals(4, sample3);
+        int sample4 = puzzles.getSecondsRequired(1, 9, new char[][]{{'x','S','.','.','x','.','.','E','x'}});
+        assertEquals(3, sample4);
     }
 }
