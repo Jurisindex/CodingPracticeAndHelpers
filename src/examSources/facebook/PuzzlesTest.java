@@ -23,6 +23,21 @@ class PuzzlesTest {
         assertEquals(result4, 991L);
         long result5 = puzzles.getMaxAdditionalDinersCount(Long.MAX_VALUE, Long.MAX_VALUE - 1, 2, new long[]{Long.MAX_VALUE - 1, Long.MAX_VALUE});
         assertEquals(result5, 1L);
+        //try2
+        long resultlinear = puzzles.getMaxAdditionalDinersCountLinear(10,1,2, new long[]{2L, 6L});
+        assertEquals(3L,resultlinear);
+        long result0linear = puzzles.getMaxAdditionalDinersCountLinear(15,2,3, new long[]{11L, 6L, 14L});
+        assertEquals(1L,result0linear);
+        long result1linear = puzzles.getMaxAdditionalDinersCountLinear(10, 1, 0, new long[]{});
+        assertEquals(result1linear, 5L);
+        long result2linear = puzzles.getMaxAdditionalDinersCountLinear(10, 1, 1, new long[]{5L});
+        assertEquals(result2linear, 4L);
+        long result3linear = puzzles.getMaxAdditionalDinersCountLinear(10, 1, 3, new long[]{2L, 6L, 8L});
+        assertEquals(result3linear, 2L);
+        long result4linear = puzzles.getMaxAdditionalDinersCountLinear(1000000, 1000, 5, new long[]{25000L, 500000L, 800000L, 900000L, 999999L});
+        assertEquals(result4linear, 991L);
+        long result5linear = puzzles.getMaxAdditionalDinersCountLinear(Long.MAX_VALUE, Long.MAX_VALUE - 1, 2, new long[]{Long.MAX_VALUE - 1, Long.MAX_VALUE});
+        assertEquals(result5linear, 1L);
         // Expected result: 2 (maximum range and gap, only 2 seats occupied)
 
     }
@@ -151,8 +166,8 @@ class PuzzlesTest {
         assertTrue(Math.abs(1 - only1ProfitAtEnd) < epsilon);
         double ending0ButWorthToTake = puzzles.getMaxExpectedProfit(12, new int[]{10,10,10,10,10,10,10,10,10,11,10,0}, 100, 0.0);
         assertTrue(Math.abs(11 - ending0ButWorthToTake) < epsilon);
-
-
+        double fiftyfifty = puzzles.getMaxExpectedProfit(12, new int[]{0,50,50,50,0,50,50,50,0,50,50,1}, 10, 0.1);
+        assertTrue(Math.abs(336 - fiftyfifty) < epsilon);
     }
 
     @Test

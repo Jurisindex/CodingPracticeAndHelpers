@@ -2,7 +2,6 @@ package examSources.facebook;
 
 import helperClasses.Pair;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class Puzzles {
@@ -38,6 +37,35 @@ public class Puzzles {
         //Add every space's customer potential (one chair at 3. 1 customer. 3 chairs at 6, 2 customers (K=1)
         for (Pair<Long, Long> entry : spaces) {
             long currentLengthSpace = entry.getVal()-entry.getKey() + 1L; //4-5 is 2 spaces, since 5-4 +1 = 2
+            dinersWecanAdd += currentLengthSpace/(K+1L) + (currentLengthSpace%(K+1L) > 0L ? 1L : 0L);
+        }
+        return dinersWecanAdd;
+    }
+
+    public long getMaxAdditionalDinersCountLinear(long N, long K, int M, long[] S) {
+        ArrayList<Long> spaces = new ArrayList<>();
+
+        //This is our answer. But we get ahead of ourselves.
+        long dinersWecanAdd = 0L;
+        long currentSeat = 0L;
+        Arrays.sort(S);
+        //For every diner that exists
+        for(int i = 0; i<M; i++)
+        {
+            long seatNumber = S[i]-1L;
+            long floor = Math.max(0L,seatNumber-K);
+            long ceil = Math.min(N-1L,seatNumber+K);
+            spaces.add(Math.max(0L, floor-currentSeat));
+            currentSeat = ceil+1L;
+        }
+        spaces.add(Math.max(0L, N-currentSeat));
+
+        //Add every space's customer potential (one chair at 3. 1 customer. 3 chairs at 6, 2 customers (K=1)
+        for (Long seats: spaces) {
+            if(seats <= 0){
+                continue;
+            }
+            long currentLengthSpace = seats; //4-5 is 2 spaces, since 5-4 +1 = 2
             dinersWecanAdd += currentLengthSpace/(K+1L) + (currentLengthSpace%(K+1L) > 0L ? 1L : 0L);
         }
         return dinersWecanAdd;
@@ -160,18 +188,15 @@ public class Puzzles {
 
     public int getMaximumEatenDishCount(int N, int[] D, int K) {
         int dishesEaten = 0;
-        ArrayList<Integer> dishIDs = new ArrayList<>();
-        Set<Integer> dishCache = new HashSet<>();
+        LinkedList<Integer> dishIDs = new LinkedList<>();
+        Set<Integer> dishCache = new HashSet<>(K, 1.0f);
 
         for (int i = 0; i < D.length; i++) {
             int dishId = D[i];
-            if(dishCache.contains(dishId)){
-                continue;
-            }
-            else {
+            if(!dishCache.contains(dishId)) {
                 if(dishCache.size() == K) {
                     //forget the oldest dish
-                    dishCache.remove(dishIDs.remove(0));
+                    dishCache.remove(dishIDs.removeFirst());
                 }
                 //sample the new dish!
                 dishIDs.add(dishId);
@@ -322,15 +347,24 @@ public class Puzzles {
 
     public double getMaxExpectedProfit(int N, int[] V, int C, double S) {
         Stack<Integer> daysEntered = new Stack<>();
-        daysEntered.add(N-1);
+        int lastPackageDelivered = N-1;
+        for(int i = N-1; i >= 0; i--){
+            if(V[i] > 0) {
+                daysEntered.add(i);
+                lastPackageDelivered = i;
+                break;
+            }
+        }
         //starting from the back, assume we go in last day
-        double lastDayEnteredProfit = V[N-1]-C;
+        double lastDayEnteredProfit = V[lastPackageDelivered]-C;
 
-        for(int i = N-2; i >= 0; i--) {
+        for(int i = lastPackageDelivered-1; i >= 0; i--) {
             int earliestCurrentDayEntered = daysEntered.peek();
             //Seeing previous day
             //What if we entered that day
-            double profitIfEntered = V[i]-C;
+            int packageValue = V[i];
+            if(packageValue == 0) continue;
+            double profitIfEntered = packageValue-C;
             double expectedValIfSleptOn = V[i]*Math.pow((1.0-S), (earliestCurrentDayEntered-i));
             if(profitIfEntered < 0.0){
                 //tack on expected value to the next day we enter
@@ -338,7 +372,7 @@ public class Puzzles {
             }
             else {
                 //if not worth it to enter on Day i. Risk the theft.
-                if(lastDayEnteredProfit+profitIfEntered < lastDayEnteredProfit+expectedValIfSleptOn){
+                if(Math.max(0.0,lastDayEnteredProfit)+profitIfEntered < lastDayEnteredProfit+expectedValIfSleptOn){
                     lastDayEnteredProfit += expectedValIfSleptOn;
                 }
                 //It actually IS worth it to go in on Day i, and not risk theft.
@@ -393,7 +427,106 @@ public class Puzzles {
     }
 
     public int getSecondsRequired(int R, int C, char[][] G) {
-        // Write your code here
-        return 0;
+        List<Pair<Integer, Integer>> endIndecies = new ArrayList<>();
+        Pair<Integer, Integer> startIndex = null;
+        Set<Character> blockerChars = Set.of('#');
+        Set<Pair<Integer, Integer>> blockedSpots = new HashSet<>();
+        Map<Character, List<Pair<Integer,Integer>>> portalToExits = new HashMap<>();
+        Map<Character, Integer> startToPortalDistanceSmallest = new HashMap<>();
+        Map<Pair<Character, Pair<Integer, Integer>>, Integer> endToPortalDistanceSmallest = new HashMap<>();
+
+        for(int x = 0; x < G[0].length; x++){
+            for(int y = 0; y < G.length; y++){
+                char charAtCoord = G[x][y];
+                if(charAtCoord == 'E'){
+                    endIndecies.add(new Pair<>(x,y));
+                }
+                else if(charAtCoord == 'S'){
+                    startIndex = new Pair<>(x,y);
+                }
+                else if(charAtCoord == '#'){
+                    blockedSpots.add(new Pair<>(x,y));
+                }
+                else if(Character.isLowerCase(charAtCoord)){
+                    List<Pair<Integer,Integer>> currentExitsForPortal = portalToExits.getOrDefault(charAtCoord, new ArrayList<>());
+                    currentExitsForPortal.add(new Pair<>(x,y));
+                    portalToExits.put(charAtCoord, currentExitsForPortal);
+                }
+            }
+        }
+        //All member vars but smallestDistance maps are now populated
+        for(Map.Entry<Character, List<Pair<Integer,Integer>>> portalEntry: portalToExits.entrySet()){
+            Character portalId = portalEntry.getKey();
+            List<Pair<Integer, Integer>> portalExits = portalEntry.getValue();
+            for(Pair<Integer, Integer> exit : portalExits){
+                int currentSmallestDistToExit = endToPortalDistanceSmallest.getOrDefault(portalId, Integer.MAX_VALUE);
+                int distToStart = smallestDistanceBetweenWithBlockers(exit, startIndex, blockerChars, G);
+                int currentSmallestDistToStart = startToPortalDistanceSmallest.getOrDefault(portalId, Integer.MAX_VALUE);
+                for(Pair<Integer, Integer> endIndex : endIndecies){
+                    int distToEnd = smallestDistanceBetweenWithBlockers(exit, endIndex, blockerChars, G);
+                    endToPortalDistanceSmallest.put(new Pair<>(portalId, endIndex), Math.min(currentSmallestDistToExit,distToEnd));
+                }
+                startToPortalDistanceSmallest.put(portalId, Math.min(currentSmallestDistToStart,distToStart));
+            }
+        }
+        int smallestTime = Integer.MAX_VALUE;
+        //not using portals
+        for(Pair<Integer, Integer> end : endIndecies){
+            smallestTime = Math.min(smallestDistanceBetweenWithBlockers(startIndex, end, blockerChars, G), smallestTime);
+        }
+        //using portals
+        for(Character c : portalToExits.keySet()){
+            smallestTime = Math.min(smallestTime,
+                                    startToPortalDistanceSmallest.get(c)+endToPortalDistanceSmallest.get(c) + 1);
+        }
+        return smallestTime;
+    }
+
+
+    private int smallestDistanceBetweenWithBlockers(Pair<Integer, Integer> pointA, Pair<Integer, Integer> pointB,
+                                                    Set<Character> blockerChars, char[][] graph) {
+        return smallestDistanceBetweenWithBlockers(pointA, pointB, blockerChars, graph, new HashSet<>());
+    }
+
+    //We only move pointA
+    private int smallestDistanceBetweenWithBlockers(Pair<Integer, Integer> pointA, Pair<Integer, Integer> pointB,
+                                                    Set<Character> blockerChars, char[][] graph,
+                                                    Set<Pair<Integer, Integer>> visited) {
+        if(pointA.equals(pointB)){
+            return 0;
+        }
+        //If impassable terrain is met, a negative number is returned, via integer overflow.
+        else if(blockerChars.contains(graph[pointA.getKey()][pointA.getVal()])){
+            return Integer.MAX_VALUE;
+        }
+
+        visited.add(pointA);
+        int distance = Integer.MAX_VALUE;
+        //visit left
+        Pair<Integer, Integer> moveTo = new Pair<>(Math.max(pointA.getKey()-1,0),pointA.getVal());
+        if(!visited.contains(moveTo)) {
+            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
+            if(distance >= 0) distance = Math.min(0, distance+1);
+        }
+        //visit right
+        moveTo = new Pair<>(Math.min(pointA.getKey()+1,graph[0].length-1),pointA.getVal());
+        if(!visited.contains(moveTo)) {
+            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
+            if(distance >= 0) distance = Math.min(0, distance+1);
+        }
+        //visit up
+        moveTo = new Pair<>(pointA.getKey(), Math.max(pointA.getVal()-1,0));
+        if(!visited.contains(moveTo)) {
+            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
+            if(distance >= 0) distance = Math.min(0, distance+1);
+        }
+        //visit down
+        moveTo = new Pair<>(pointA.getKey(), Math.min(pointA.getVal()+1,graph.length-1));
+        if(!visited.contains(moveTo)) {
+            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
+            if(distance >= 0) distance = Math.min(0, distance+1);
+        }
+
+        return distance;
     }
 }
