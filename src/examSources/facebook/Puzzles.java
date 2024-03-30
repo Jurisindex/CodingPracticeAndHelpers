@@ -429,7 +429,8 @@ public class Puzzles {
     public int getSecondsRequired(int R, int C, char[][] G) {
         List<Pair<Integer, Integer>> endIndecies = new ArrayList<>();
         Pair<Integer, Integer> startIndex = null;
-        Set<Character> blockerChars = Set.of('#');
+        Set<Character> blockerChars = new HashSet<>();
+        blockerChars.add('#');
         Set<Pair<Integer, Integer>> blockedSpots = new HashSet<>();
         Map<Character, List<Pair<Integer,Integer>>> portalToExits = new HashMap<>();
         Map<Character, Integer> startToPortalDistanceSmallest = new HashMap<>();
@@ -437,7 +438,7 @@ public class Puzzles {
 
         for(int x = 0; x < G[0].length; x++){
             for(int y = 0; y < G.length; y++){
-                char charAtCoord = G[x][y];
+                char charAtCoord = G[y][x];
                 if(charAtCoord == 'E'){
                     endIndecies.add(new Pair<>(x,y));
                 }
@@ -459,25 +460,37 @@ public class Puzzles {
             Character portalId = portalEntry.getKey();
             List<Pair<Integer, Integer>> portalExits = portalEntry.getValue();
             for(Pair<Integer, Integer> exit : portalExits){
-                int currentSmallestDistToExit = endToPortalDistanceSmallest.getOrDefault(portalId, Integer.MAX_VALUE);
-                int distToStart = smallestDistanceBetweenWithBlockers(exit, startIndex, blockerChars, G);
                 int currentSmallestDistToStart = startToPortalDistanceSmallest.getOrDefault(portalId, Integer.MAX_VALUE);
+                int distToStart = smallestDistanceBetweenWithBlockers(exit, startIndex, blockerChars, G);
+                if(distToStart > 0)
+                    startToPortalDistanceSmallest.put(portalId, Math.min(currentSmallestDistToStart,distToStart));
+
                 for(Pair<Integer, Integer> endIndex : endIndecies){
+                    int currentSmallestDistToExit = endToPortalDistanceSmallest.getOrDefault(new Pair<>(portalId, endIndex), Integer.MAX_VALUE);
                     int distToEnd = smallestDistanceBetweenWithBlockers(exit, endIndex, blockerChars, G);
-                    endToPortalDistanceSmallest.put(new Pair<>(portalId, endIndex), Math.min(currentSmallestDistToExit,distToEnd));
+                    if(distToEnd > 0)
+                        endToPortalDistanceSmallest.put(new Pair<>(portalId, endIndex), Math.min(currentSmallestDistToExit,distToEnd));
                 }
-                startToPortalDistanceSmallest.put(portalId, Math.min(currentSmallestDistToStart,distToStart));
             }
         }
         int smallestTime = Integer.MAX_VALUE;
         //not using portals
         for(Pair<Integer, Integer> end : endIndecies){
-            smallestTime = Math.min(smallestDistanceBetweenWithBlockers(startIndex, end, blockerChars, G), smallestTime);
+            int timeTakenStartToEnd = smallestDistanceBetweenWithBlockers(startIndex, end, blockerChars, G);
+            if(timeTakenStartToEnd > 0)
+                smallestTime = Math.min(smallestTime, timeTakenStartToEnd);
         }
         //using portals
-        for(Character c : portalToExits.keySet()){
-            smallestTime = Math.min(smallestTime,
-                                    startToPortalDistanceSmallest.get(c)+endToPortalDistanceSmallest.get(c) + 1);
+        for(Pair<Character, Pair<Integer, Integer>> characterAndExitPair: endToPortalDistanceSmallest.keySet()) {
+            Character c = characterAndExitPair.getKey();
+            int timeFromStart = startToPortalDistanceSmallest.getOrDefault(c, -1);
+            int timeToEnd = endToPortalDistanceSmallest.getOrDefault(characterAndExitPair,  -1);
+            if(timeToEnd > 0 && timeFromStart > 0){
+                smallestTime = Math.min(timeFromStart+timeToEnd+1, smallestTime);   //takes +1 second to take the portal
+            }
+        }
+        if (smallestTime == Integer.MAX_VALUE || smallestTime < 0){
+            return -1;
         }
         return smallestTime;
     }
@@ -495,38 +508,40 @@ public class Puzzles {
         if(pointA.equals(pointB)){
             return 0;
         }
-        //If impassable terrain is met, a negative number is returned, via integer overflow.
-        else if(blockerChars.contains(graph[pointA.getKey()][pointA.getVal()])){
-            return Integer.MAX_VALUE;
+        //If impassable terrain is met, a negative number is returned
+        //The graph takes in input in [y][x], but I hate that format so it's reverse for everything else
+        else if(blockerChars.contains(graph[pointA.getVal()][pointA.getKey()])){
+            return -1;
         }
 
         visited.add(pointA);
-        int distance = Integer.MAX_VALUE;
-        //visit left
+        int smallestDistance = -1;
+        int distance = -1;
+        //visit up
         Pair<Integer, Integer> moveTo = new Pair<>(Math.max(pointA.getKey()-1,0),pointA.getVal());
         if(!visited.contains(moveTo)) {
             distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
-            if(distance >= 0) distance = Math.min(0, distance+1);
+            if(distance >= 0) smallestDistance = distance+1;
         }
-        //visit right
+        //visit down
         moveTo = new Pair<>(Math.min(pointA.getKey()+1,graph[0].length-1),pointA.getVal());
         if(!visited.contains(moveTo)) {
             distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
-            if(distance >= 0) distance = Math.min(0, distance+1);
+            if(distance >= 0) smallestDistance = distance+1;
         }
-        //visit up
+        //visit left
         moveTo = new Pair<>(pointA.getKey(), Math.max(pointA.getVal()-1,0));
         if(!visited.contains(moveTo)) {
             distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
-            if(distance >= 0) distance = Math.min(0, distance+1);
+            if(distance >= 0) smallestDistance = distance+1;
         }
-        //visit down
+        //visit right
         moveTo = new Pair<>(pointA.getKey(), Math.min(pointA.getVal()+1,graph.length-1));
         if(!visited.contains(moveTo)) {
             distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
-            if(distance >= 0) distance = Math.min(0, distance+1);
+            if(distance >= 0) smallestDistance = distance+1;
         }
-
-        return distance;
+        visited.remove(pointA);
+        return smallestDistance;
     }
 }
