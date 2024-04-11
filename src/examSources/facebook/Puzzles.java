@@ -743,7 +743,24 @@ public class Puzzles {
     }
 
     public double getMaxDamageDealt(int N, int[] H, int[] D, int B) {
-        // Write your code here
-        return 0.0;
+        //Parse each warrior i. Create a timelived number for each one, new int[]
+        //timeLived *damage + timeLived of other warrior choices*dmg
+        double[] timeLived = new double[N];
+        double maxDamageForPair = 0;
+        for(int i = 0; i < N; i++){
+            timeLived[i] = (double)H[i]/(double)B;
+        }
+        for(int tank = 0; tank < N; tank++){
+            double tankDmgDone = timeLived[tank]*D[tank];
+            for(int dps = 0; dps < N; dps++){
+                if(tank == dps) {
+                    continue;
+                }
+
+                double dpsDmgDone = timeLived[tank]*D[dps] + timeLived[dps]*D[dps];
+                maxDamageForPair = Math.max(maxDamageForPair, dpsDmgDone+tankDmgDone);
+            }
+        }
+        return maxDamageForPair;
     }
 }

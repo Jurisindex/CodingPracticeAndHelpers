@@ -250,4 +250,15 @@ class PuzzlesTest {
         long result9 = puzzles.getSecondsElapsed(30L, 3, new long[]{5L, 13L, 19L}, new long[]{10L, 17L, 25L}, 100L);
         assertEquals(result9, 200L);
     }
+
+    @Test
+    void getMaxDamageDealt() {
+        double epsilon = 0.000001;
+        double result1 = puzzles.getMaxDamageDealt(3, new int[]{2,1,4}, new int[]{3,1,2}, 4);
+        assertTrue(Math.abs(6.500000 - result1) < epsilon);
+        double result2 = puzzles.getMaxDamageDealt(4, new int[]{1,1,2,100}, new int[]{1,2,1,3}, 8);
+        assertTrue(Math.abs(62.750000 - result2) < epsilon);
+        double result3 = puzzles.getMaxDamageDealt(4, new int[]{1,1,2,3}, new int[]{1,2,1,100}, 8);
+        assertTrue(Math.abs(62.750000 - result3) < epsilon);
+    }
 }
