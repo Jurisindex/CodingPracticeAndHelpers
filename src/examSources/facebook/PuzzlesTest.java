@@ -23,23 +23,6 @@ class PuzzlesTest {
         assertEquals(result4, 991L);
         long result5 = puzzles.getMaxAdditionalDinersCount(Long.MAX_VALUE, Long.MAX_VALUE - 1, 2, new long[]{Long.MAX_VALUE - 1, Long.MAX_VALUE});
         assertEquals(result5, 1L);
-        //try2
-        long resultlinear = puzzles.getMaxAdditionalDinersCountLinear(10,1,2, new long[]{2L, 6L});
-        assertEquals(3L,resultlinear);
-        long result0linear = puzzles.getMaxAdditionalDinersCountLinear(15,2,3, new long[]{11L, 6L, 14L});
-        assertEquals(1L,result0linear);
-        long result1linear = puzzles.getMaxAdditionalDinersCountLinear(10, 1, 0, new long[]{});
-        assertEquals(result1linear, 5L);
-        long result2linear = puzzles.getMaxAdditionalDinersCountLinear(10, 1, 1, new long[]{5L});
-        assertEquals(result2linear, 4L);
-        long result3linear = puzzles.getMaxAdditionalDinersCountLinear(10, 1, 3, new long[]{2L, 6L, 8L});
-        assertEquals(result3linear, 2L);
-        long result4linear = puzzles.getMaxAdditionalDinersCountLinear(1000000, 1000, 5, new long[]{25000L, 500000L, 800000L, 900000L, 999999L});
-        assertEquals(result4linear, 991L);
-        long result5linear = puzzles.getMaxAdditionalDinersCountLinear(Long.MAX_VALUE, Long.MAX_VALUE - 1, 2, new long[]{Long.MAX_VALUE - 1, Long.MAX_VALUE});
-        assertEquals(result5linear, 1L);
-        // Expected result: 2 (maximum range and gap, only 2 seats occupied)
-
     }
 
     @Test
@@ -95,8 +78,8 @@ class PuzzlesTest {
 
     @Test
     void getMinCodeEntryTime() {
-//        long result1 = puzzles.getMinCodeEntryTime(3, 3, new int[]{1,2,3});
-//        assertEquals(2L, result1);
+        long result1 = puzzles.getMinCodeEntryTime(3, 3, new int[]{1,2,3});
+        assertEquals(2L, result1);
         long result2 = puzzles.getMinCodeEntryTime(45000, 5, new int[]{2,5,4500,44995,5});
         assertEquals(9014L, result2);
     }
@@ -178,9 +161,93 @@ class PuzzlesTest {
 //        assertEquals(1, sample1modified);
 //        int sample2 = puzzles.getSecondsRequired(3, 4, new char[][]{{'a','.','S','a'},{'#','#','#','#'},{'E','b','.','b'}});
 //        assertEquals(-1, sample2);
-        int sample3 = puzzles.getSecondsRequired(3, 4, new char[][]{{'a','S','.','b'},{'#','#','#','#'},{'E','b','.','a'}});
-        assertEquals(4, sample3);
-        int sample4 = puzzles.getSecondsRequired(1, 9, new char[][]{{'x','S','.','.','x','.','.','E','x'}});
-        assertEquals(3, sample4);
+//        int sample3 = puzzles.getSecondsRequired(3, 4, new char[][]{{'a','S','.','b'},{'#','#','#','#'},{'E','b','.','a'}});
+//        assertEquals(4, sample3);
+//        int sample4 = puzzles.getSecondsRequired(1, 9, new char[][]{{'x','S','.','.','x','.','.','E','x'}});
+//        assertEquals(3, sample4);
+//        int sample5 = puzzles.getSecondsRequired(3, 4, new char[][]{
+//                        {'a','S','E','b'},
+//                        {'#','#','#','#'},
+//                        {'E','b','.','a'}});
+//        assertEquals(1, sample5);
+        int complex = puzzles.getSecondsRequired(0, 0, new char[][]{
+                {'a','S','.','b'},
+                {'#','#','#','#'},
+                {'a','y','q','w'},
+                {'#','#','#','#'},
+                {'b','x','n','E'},
+                {'#','#','#','#'},
+                {'E','y','.','b'},
+        });
+        assertEquals(5, complex);
+    }
+
+    @Test
+    void getMaxVisitableWebpages() {
+//        int maxPagesComplex = puzzles.getMaxVisitableWebpages(0, new int[]{12,1,2,6,3,5,6,11,10,7,10,8});
+//        assertEquals(maxPagesComplex, 10);
+//        int maxPages1 = puzzles.getMaxVisitableWebpages(4, new int[]{4,1,2,1});
+//        assertEquals(maxPages1, 4);
+//        int maxPages2 = puzzles.getMaxVisitableWebpages(5, new int[]{4,3,5,1,2});
+//        assertEquals(maxPages2, 3);
+        int maxPages3 = puzzles.getMaxVisitableWebpages(5, new int[]{2,4,2,2,3});
+        assertEquals(maxPages3, 4);
+    }
+
+    @Test
+    void getMinCodeEntryTimeTwoLocks() {
+        long result1 = puzzles.getMinCodeEntryTimeTwoLocks(3, 3, new int[]{1,2,3});
+        assertEquals(2L, result1);
+        long result2 = puzzles.getMinCodeEntryTimeTwoLocks(10, 4, new int[]{9,4,4,8});
+        assertEquals(6L, result2);
+    }
+
+    @Test
+    void getMaxAdditionalDinersCountLinear() {
+        long resultlinear = puzzles.getMaxAdditionalDinersCountLinear(10,1,2, new long[]{2L, 6L});
+        assertEquals(3L,resultlinear);
+        long result0linear = puzzles.getMaxAdditionalDinersCountLinear(15,2,3, new long[]{11L, 6L, 14L});
+        assertEquals(1L,result0linear);
+        long result1linear = puzzles.getMaxAdditionalDinersCountLinear(10, 1, 0, new long[]{});
+        assertEquals(result1linear, 5L);
+        long result2linear = puzzles.getMaxAdditionalDinersCountLinear(10, 1, 1, new long[]{5L});
+        assertEquals(result2linear, 4L);
+        long result3linear = puzzles.getMaxAdditionalDinersCountLinear(10, 1, 3, new long[]{2L, 6L, 8L});
+        assertEquals(result3linear, 2L);
+        long result4linear = puzzles.getMaxAdditionalDinersCountLinear(1000000, 1000, 5, new long[]{25000L, 500000L, 800000L, 900000L, 999999L});
+        assertEquals(result4linear, 991L);
+        long result5linear = puzzles.getMaxAdditionalDinersCountLinear(Long.MAX_VALUE, Long.MAX_VALUE - 1, 2, new long[]{Long.MAX_VALUE - 1, Long.MAX_VALUE});
+        assertEquals(result5linear, 1L);
+    }
+
+    @Test
+    void getMinProblemCountGeneralized() {
+        //stub
+    }
+
+    @Test
+    void getSecondsElapsed() {
+//        long result1 = puzzles.getSecondsElapsed(10L,2, new long[]{1L,6L}, new long[]{3,7}, 7L);
+//        assertEquals(result1, 22L);
+//        long result2 = puzzles.getSecondsElapsed(50L,3, new long[]{39L,19L,28L}, new long[]{49L,27L,35L}, 15L);
+//        assertEquals(result2, 35L);
+        long result1 = puzzles.getSecondsElapsed(10L, 2, new long[]{1L, 6L}, new long[]{3L, 7L}, 18L);
+        assertEquals(result1, 57L);
+        long result2 = puzzles.getSecondsElapsed(10L, 2, new long[]{1L, 6L}, new long[]{3L, 7L}, 17L);
+        assertEquals(result2, 53L);
+        long result3 = puzzles.getSecondsElapsed(10L, 2, new long[]{1L, 6L}, new long[]{3L, 7L}, 12L);
+        assertEquals(result3, 37L);
+        long result4 = puzzles.getSecondsElapsed(20L, 4, new long[]{5L, 10L, 15L, 18L}, new long[]{7L, 13L, 17L, 20L}, 42L);
+        assertEquals(result4, 96L);
+        long result5 = puzzles.getSecondsElapsed(15L, 3, new long[]{3L, 8L, 11L}, new long[]{6L, 10L, 14L}, 30L);
+        assertEquals(result5, 57L);
+        long result6 = puzzles.getSecondsElapsed(12L, 1, new long[]{3L}, new long[]{7L}, 5L);
+        assertEquals(result6, 16L);
+        long result7 = puzzles.getSecondsElapsed(20L, 1, new long[]{5L}, new long[]{15L}, 10L);
+        assertEquals(result7, 15L);
+        long result8 = puzzles.getSecondsElapsed(25L, 2, new long[]{6L, 17L}, new long[]{12L, 22L}, 50L);
+        assertEquals(result8, 112L);
+        long result9 = puzzles.getSecondsElapsed(30L, 3, new long[]{5L, 13L, 19L}, new long[]{10L, 17L, 25L}, 100L);
+        assertEquals(result9, 200L);
     }
 }

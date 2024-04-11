@@ -3,6 +3,8 @@ package examSources.facebook;
 import helperClasses.Pair;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Puzzles {
     public double getHitProbability(int R, int C, int[][] G) {
@@ -220,7 +222,49 @@ public class Puzzles {
         return secondsPassed;
     }
 
+    public long getMinCodeEntryTimeTwoLocks(int N, int M, int[] C) {
+        int leftPosition = 0;
+        int rightPosition = 0;
+        long timeTakenSoFar = 0L;
+        for(int i = 0; i < M; i++){
+            int nextPos = C[i]-1;
+            long ifLeftHandMoved = getTimeWithPositionAtPos(N, C, leftPosition, i);
+            long ifRightHandMoved = getTimeWithPositionAtPos(N, C, rightPosition, i);
+            if(ifLeftHandMoved <= ifRightHandMoved){
+                //make left hand move
+                timeTakenSoFar += ifLeftHandMoved;
+                leftPosition = nextPos;
+            }
+            else{
+                //make right hand move
+                timeTakenSoFar += ifRightHandMoved;
+                rightPosition = nextPos;
+            }
+
+        }
+        return timeTakenSoFar;
+    }
+
+    private static long getTimeWithPositionAtPos(int N, int[] C, int positionAt, int positionFrom) {
+        long secondsPassed = 0L;
+        int indexToGoTo = C[positionFrom]-1;
+        int overflowDistance = Math.min(N -indexToGoTo+ positionAt, N - positionAt +indexToGoTo);
+        int distance = Math.min(overflowDistance, Math.abs(indexToGoTo- positionAt));
+        secondsPassed = secondsPassed + (long) distance;
+        return secondsPassed;
+    }
+
     public int getMinProblemCount(int N, int[] S) {
+        boolean oddValue = false;
+        int highestScore = 0;
+        for(int i = 0; i < S.length; i++) {
+            highestScore = Math.max(highestScore, S[i]);
+            if(S[i]%2 == 1) oddValue = true;
+        }
+        return highestScore/2 + (oddValue ? 1 : 0);
+    }
+
+    public int getMinProblemCountGeneralized(int N, int[] S, Map<Integer,Integer> minProblemsForValue) {
         boolean oddValue = false;
         int highestScore = 0;
         for(int i = 0; i < S.length; i++) {
@@ -455,56 +499,67 @@ public class Puzzles {
                 }
             }
         }
+        int smallestDistance = -1;
+        for(Pair<Integer, Integer> endIndex : endIndecies){
+            int fromStartToEnd = smallestDistanceBetweenWithBlockers(startIndex, endIndex, blockerChars, G, portalToExits);
+            if(fromStartToEnd >= 1){
+                if(smallestDistance < 0)
+                    smallestDistance = fromStartToEnd;
+                else
+                    smallestDistance = Math.min(smallestDistance, fromStartToEnd);
+            }
+        }
+        return smallestDistance;
         //All member vars but smallestDistance maps are now populated
-        for(Map.Entry<Character, List<Pair<Integer,Integer>>> portalEntry: portalToExits.entrySet()){
-            Character portalId = portalEntry.getKey();
-            List<Pair<Integer, Integer>> portalExits = portalEntry.getValue();
-            for(Pair<Integer, Integer> exit : portalExits){
-                int currentSmallestDistToStart = startToPortalDistanceSmallest.getOrDefault(portalId, Integer.MAX_VALUE);
-                int distToStart = smallestDistanceBetweenWithBlockers(exit, startIndex, blockerChars, G);
-                if(distToStart > 0)
-                    startToPortalDistanceSmallest.put(portalId, Math.min(currentSmallestDistToStart,distToStart));
-
-                for(Pair<Integer, Integer> endIndex : endIndecies){
-                    int currentSmallestDistToExit = endToPortalDistanceSmallest.getOrDefault(new Pair<>(portalId, endIndex), Integer.MAX_VALUE);
-                    int distToEnd = smallestDistanceBetweenWithBlockers(exit, endIndex, blockerChars, G);
-                    if(distToEnd > 0)
-                        endToPortalDistanceSmallest.put(new Pair<>(portalId, endIndex), Math.min(currentSmallestDistToExit,distToEnd));
-                }
-            }
-        }
-        int smallestTime = Integer.MAX_VALUE;
-        //not using portals
-        for(Pair<Integer, Integer> end : endIndecies){
-            int timeTakenStartToEnd = smallestDistanceBetweenWithBlockers(startIndex, end, blockerChars, G);
-            if(timeTakenStartToEnd > 0)
-                smallestTime = Math.min(smallestTime, timeTakenStartToEnd);
-        }
-        //using portals
-        for(Pair<Character, Pair<Integer, Integer>> characterAndExitPair: endToPortalDistanceSmallest.keySet()) {
-            Character c = characterAndExitPair.getKey();
-            int timeFromStart = startToPortalDistanceSmallest.getOrDefault(c, -1);
-            int timeToEnd = endToPortalDistanceSmallest.getOrDefault(characterAndExitPair,  -1);
-            if(timeToEnd > 0 && timeFromStart > 0){
-                smallestTime = Math.min(timeFromStart+timeToEnd+1, smallestTime);   //takes +1 second to take the portal
-            }
-        }
-        if (smallestTime == Integer.MAX_VALUE || smallestTime < 0){
-            return -1;
-        }
-        return smallestTime;
+//        for(Map.Entry<Character, List<Pair<Integer,Integer>>> portalEntry: portalToExits.entrySet()){
+//            Character portalId = portalEntry.getKey();
+//            List<Pair<Integer, Integer>> portalExits = portalEntry.getValue();
+//            for(Pair<Integer, Integer> exit : portalExits){
+//                int currentSmallestDistToStart = startToPortalDistanceSmallest.getOrDefault(portalId, Integer.MAX_VALUE);
+//                int distToStart = smallestDistanceBetweenWithBlockers(exit, startIndex, blockerChars, G, portalToExits);
+//                if(distToStart > 0)
+//                    startToPortalDistanceSmallest.put(portalId, Math.min(currentSmallestDistToStart,distToStart));
+//
+//                for(Pair<Integer, Integer> endIndex : endIndecies){
+//                    int currentSmallestDistToExit = endToPortalDistanceSmallest.getOrDefault(new Pair<>(portalId, endIndex), Integer.MAX_VALUE);
+//                    int distToEnd = smallestDistanceBetweenWithBlockers(exit, endIndex, blockerChars, G, portalToExits);
+//                    if(distToEnd > 0)
+//                        endToPortalDistanceSmallest.put(new Pair<>(portalId, endIndex), Math.min(currentSmallestDistToExit,distToEnd));
+//                }
+//            }
+//        }
+//        int smallestTime = Integer.MAX_VALUE;
+//        //not using portals
+//        for(Pair<Integer, Integer> end : endIndecies){
+//            int timeTakenStartToEnd = smallestDistanceBetweenWithBlockers(startIndex, end, blockerChars, G, portalToExits);
+//            if(timeTakenStartToEnd > 0)
+//                smallestTime = Math.min(smallestTime, timeTakenStartToEnd);
+//        }
+//        //using portals
+//        for(Pair<Character, Pair<Integer, Integer>> characterAndExitPair: endToPortalDistanceSmallest.keySet()) {
+//            Character c = characterAndExitPair.getKey();
+//            int timeFromStart = startToPortalDistanceSmallest.getOrDefault(c, -1);
+//            int timeToEnd = endToPortalDistanceSmallest.getOrDefault(characterAndExitPair,  -1);
+//            if(timeToEnd > 0 && timeFromStart > 0){
+//                smallestTime = Math.min(timeFromStart+timeToEnd+1, smallestTime);   //takes +1 second to take the portal
+//            }
+//        }
+//        if (smallestTime == Integer.MAX_VALUE || smallestTime < 0){
+//            return -1;
+//        }
+//        return smallestTime;
     }
 
 
     private int smallestDistanceBetweenWithBlockers(Pair<Integer, Integer> pointA, Pair<Integer, Integer> pointB,
-                                                    Set<Character> blockerChars, char[][] graph) {
-        return smallestDistanceBetweenWithBlockers(pointA, pointB, blockerChars, graph, new HashSet<>());
+                                                    Set<Character> blockerChars, char[][] graph, Map<Character, List<Pair<Integer, Integer>>> portalToExits) {
+        return smallestDistanceBetweenWithBlockers(pointA, pointB, blockerChars, graph, new HashSet<>(), portalToExits);
     }
 
     //We only move pointA
     private int smallestDistanceBetweenWithBlockers(Pair<Integer, Integer> pointA, Pair<Integer, Integer> pointB,
                                                     Set<Character> blockerChars, char[][] graph,
-                                                    Set<Pair<Integer, Integer>> visited) {
+                                                    Set<Pair<Integer, Integer>> visited, Map<Character, List<Pair<Integer,Integer>>> portalToExits) {
         if(pointA.equals(pointB)){
             return 0;
         }
@@ -515,33 +570,180 @@ public class Puzzles {
         }
 
         visited.add(pointA);
-        int smallestDistance = -1;
+        int smallestDistance = Integer.MAX_VALUE;
         int distance = -1;
-        //visit up
+        boolean found = false;
+        //visit left
         Pair<Integer, Integer> moveTo = new Pair<>(Math.max(pointA.getKey()-1,0),pointA.getVal());
         if(!visited.contains(moveTo)) {
-            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
-            if(distance >= 0) smallestDistance = distance+1;
-        }
-        //visit down
-        moveTo = new Pair<>(Math.min(pointA.getKey()+1,graph[0].length-1),pointA.getVal());
-        if(!visited.contains(moveTo)) {
-            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
-            if(distance >= 0) smallestDistance = distance+1;
-        }
-        //visit left
-        moveTo = new Pair<>(pointA.getKey(), Math.max(pointA.getVal()-1,0));
-        if(!visited.contains(moveTo)) {
-            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
-            if(distance >= 0) smallestDistance = distance+1;
+            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited, portalToExits);
+            if(distance >= 0) {
+                smallestDistance = Math.min(smallestDistance, distance+1);
+                found=true;
+            }
         }
         //visit right
+        moveTo = new Pair<>(Math.min(pointA.getKey()+1,graph[0].length-1),pointA.getVal());
+        if(!visited.contains(moveTo)) {
+            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited, portalToExits);
+            if(distance >= 0) {
+                smallestDistance = Math.min(smallestDistance, distance+1);
+                found=true;
+            }
+        }
+        //visit up
+        moveTo = new Pair<>(pointA.getKey(), Math.max(pointA.getVal()-1,0));
+        if(!visited.contains(moveTo)) {
+            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited, portalToExits);
+            if(distance >= 0) {
+                smallestDistance = Math.min(smallestDistance, distance+1);
+                found=true;
+            }
+        }
+        //visit down
         moveTo = new Pair<>(pointA.getKey(), Math.min(pointA.getVal()+1,graph.length-1));
         if(!visited.contains(moveTo)) {
-            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited);
-            if(distance >= 0) smallestDistance = distance+1;
+            distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited, portalToExits);
+            if(distance >= 0) {
+                smallestDistance = Math.min(smallestDistance, distance+1);
+                found=true;
+            }
+        }
+        //visit portal exits
+        //If the cell is a portalExit, maybe we step through portal?
+        List<Pair<Integer, Integer>> portalExitPoints = portalToExits.getOrDefault(graph[pointA.getVal()][pointA.getKey()], new ArrayList<>());
+        for(Pair<Integer, Integer> teleportTo: portalExitPoints){
+            moveTo = teleportTo;
+            if(!visited.contains(moveTo)) {
+                distance = smallestDistanceBetweenWithBlockers(moveTo, pointB, blockerChars, graph, visited, portalToExits);
+                if(distance >= 0) {
+                    smallestDistance = Math.min(smallestDistance, distance+1);
+                    found=true;
+                }
+            }
         }
         visited.remove(pointA);
-        return smallestDistance;
+        if(found)
+            return smallestDistance;
+        else
+            return -1;
+    }
+
+    public int getMaxVisitableWebpages(int N, int[] L) {
+        ArrayList<LinkedList<Integer>> hopChains = new ArrayList<>();
+        int longestSize = 0;
+        for(int i = 0; i < L.length; i++){
+            int jumpTo = L[i]-1;  //1st cell is 0 index, but we track by index
+            boolean added = false;
+            for(int j = 0; j < hopChains.size(); j++){
+                //is it starting or ending a current chain
+                LinkedList<Integer> thisChain = hopChains.get(j);
+                if(thisChain.contains(i) && thisChain.contains(jumpTo)){
+                    added = true;
+                    break;
+                }
+
+                if(thisChain.getFirst().equals(jumpTo)){
+                    if(!thisChain.contains(i)) {
+                        thisChain.addFirst(i);
+                        added = true;
+                    }
+                }
+                else if(thisChain.getLast().equals(i)) {
+                    if(!thisChain.contains(jumpTo)){
+                        thisChain.addLast(jumpTo);
+                        added = true;
+                    }
+                }
+            }
+            if(!added){
+                LinkedList<Integer> newChain = new LinkedList<>();
+                newChain.addFirst(i);
+
+                newChain.addLast(jumpTo);
+                hopChains.add(newChain);
+            }
+        }
+
+        for(int i = 0; i < hopChains.size(); i++){
+            longestSize = Math.max(longestSize, hopChains.get(i).size());
+        }
+        return longestSize;
+//        int maxVisits = 0;
+//        Set<Integer> visitedNumbers = new HashSet<>();
+//        //trying starting at every cell
+//        Set<Integer> numbersNotAppeared = new HashSet<>();
+//        //[1,12,2,6,3,5,6,11,10,7,10,8]
+//        //[3,4,7,8,9]
+//        //for [4,1,2,1]:
+//        //[2,3]
+//        for(int i = 0; i < L.length; i++){
+//            int linkTo = L[i]-1;  //from i, [4,1,2,1], i=2, linkTo=2(1-indexed so we minus 1)
+//            int visitsStartingFromi = 1;
+//            visitedNumbers.add(i);
+//            visitsStartingFromi++;
+//
+//            int nextLink = L[linkTo-1];
+//            while(!visitedNumbers.contains(nextLink)){
+//                visitedNumbers.add(nextLink);
+//                visitsStartingFromi++;
+//                nextLink = L[nextLink-1];
+//            }
+//            visitedNumbers = new HashSet<>();
+//            maxVisits = Math.max(maxVisits, visitsStartingFromi);
+//        }
+//        return maxVisits;
+    }
+
+    public long getSecondsElapsed(long C, int N, long[] A, long[] B, long K) {
+        //Train goes in big circle size C. 1 second to go 1 position
+        //There are N tunnels. A[i] is the start, B[i] is the end. B[i]-A[i] is the length of tunnel i, let's say
+        //How many seconds until the train spends K seconds in a tunnel?
+        Arrays.sort(A);
+        Arrays.sort(B);
+        long totalTunnelTimeInOneRotation = 0L;
+        Map<Long, Long> tunnelEntranceAndTimeSpentAfterTaken = new HashMap<>();
+        ArrayList<Long> timeSpentInTunnelAfterTaken = new ArrayList<>();
+        for(int i = 0; i < A.length; i++){
+            //count the time spent in the tunnels as we go through them
+            totalTunnelTimeInOneRotation += B[i] - A[i];
+            if(totalTunnelTimeInOneRotation >= K){
+                //1st Tunnel ends at 20, starts at 10, K is 5. B[i] is 20, totalTimeInTunnel is 10. 20-(10-5) = 15
+                //After 15 seconds (time to get to A[i]:10) we should return
+                return B[i] - (totalTunnelTimeInOneRotation-K);
+            }
+            //every tunnel entrance, mark down in the Map, how long we've spent in tunnels SO FAR
+//            tunnelEntranceAndTimeSpentAfterTaken.put(A[i],totalTunnelTimeInOneRotation);
+            timeSpentInTunnelAfterTaken.add(totalTunnelTimeInOneRotation);
+            //Then we have something that looks like: {1=>0,6=>2
+        }
+        //totalTunnelTimeInOneRotation will then be used to see how many loops we have to do (just *C)
+        long loops = K/totalTunnelTimeInOneRotation;
+        long remainder = K%totalTunnelTimeInOneRotation;
+        //Then iterate by tunnel entrance, marking down the previous tunnel entry
+        long previousIndex = 0L;
+        long minusor = 0L;
+        if(remainder == 0L){
+            //The loops needed plus ended at the end of the last tunnel, cutting off the last loop
+            return loops*C - (C-B[B.length-1]);
+        }
+        for(int i = 0; i < A.length; i++){
+            if(timeSpentInTunnelAfterTaken.get(i) >= remainder){
+                previousIndex = A[i];
+                if(i > 0)
+                    minusor = timeSpentInTunnelAfterTaken.get(i-1);
+                break;
+            }
+        }
+        //The last train tunnel will reach our goal
+        if(previousIndex == 0L){
+            System.out.println("Something has gone wrong");
+        }
+        return (loops*C) + (previousIndex+(remainder-minusor));
+    }
+
+    public double getMaxDamageDealt(int N, int[] H, int[] D, int B) {
+        // Write your code here
+        return 0.0;
     }
 }

@@ -134,6 +134,18 @@ public class CommonHelperMethods
 		return str;
 	}
 
+//	public static <T extends Comparable<T>> ArrayList<T> insertionSort(ArrayList<T> list, T value){
+//		ArrayList<T> returnList = new ArrayList<>();
+//		if(list.isEmpty()){
+//			returnList.add(value);
+//			return returnList;
+//		}
+//
+//		int lowSearchIndex = 0;
+//		int longSearchIndex = list.size()-1;
+//		return returnList;
+//	}
+
 	public static Map<String, Integer> sortMapByValues(Map<String, Integer> inputMap)
 	{
 		Stream<Map.Entry<String,Integer>> sorted =
