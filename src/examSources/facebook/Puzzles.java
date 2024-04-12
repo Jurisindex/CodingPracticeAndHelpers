@@ -3,8 +3,6 @@ package examSources.facebook;
 import helperClasses.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Puzzles {
     public double getHitProbability(int R, int C, int[][] G) {
@@ -742,25 +740,248 @@ public class Puzzles {
         return (loops*C) + (previousIndex+(remainder-minusor));
     }
 
+    private double getDmg(int war1D, int war1HP, int war2D, int war2HP, int dmgByBoss){
+        return Math.max(war1D*((double)war1HP/dmgByBoss) + war2D*((double)war1HP/dmgByBoss + (double)war2HP/dmgByBoss),
+                        war2D*((double)war2HP/dmgByBoss) + war1D*((double)war2HP/dmgByBoss + (double)war1HP/dmgByBoss));
+    }
+
     public double getMaxDamageDealt(int N, int[] H, int[] D, int B) {
-        //Parse each warrior i. Create a timelived number for each one, new int[]
-        //timeLived *damage + timeLived of other warrior choices*dmg
-        double[] timeLived = new double[N];
+        class Warrior implements Comparable<Warrior> {
+            long health;
+            long damage;
+
+            public Warrior(int health, int damage) {
+                this.health = health;
+                this.damage = damage;
+            }
+
+            public int compareTo(Warrior that) {
+                return - Long.compare(this.health * this.damage, that.health * that.damage);
+            }
+
+            // Calculate the total boss damage with a second warrior
+            public double bossDamage(Warrior second, int B) {
+                return (double) (this.damage + second.damage) * this.health/B + (double) second.damage * second.health/B;
+            }
+        }
+        //Parse each warrior i. Create a dmgDone number for each one, new double[]
+        //timeLived*damage
+        double[] dmgDone = new double[N];
+        Integer[] warsByDmg = new Integer[N];
+        Integer[] warsByHP = new Integer[N];
         double maxDamageForPair = 0;
         for(int i = 0; i < N; i++){
-            timeLived[i] = (double)H[i]/(double)B;
+//            dmgDone[i] = ((double)H[i]/(double)B) * (double)D[i];
+            warsByHP[i] = i;
+            warsByDmg[i] = i;
         }
-        for(int tank = 0; tank < N; tank++){
-            double tankDmgDone = timeLived[tank]*D[tank];
-            for(int dps = 0; dps < N; dps++){
-                if(tank == dps) {
+        Arrays.sort(warsByDmg, (a, b) -> Double.compare(D[b], D[a]));
+        Arrays.sort(warsByHP, (a, b) -> Double.compare(H[b], H[a]));
+        int dpsWarriorIndex = warsByDmg[0];
+        int tankWarriorIndex = warsByHP[0];
+        if(dpsWarriorIndex == tankWarriorIndex){
+            tankWarriorIndex = warsByHP[1];
+        }
+        maxDamageForPair = getDmg(D[tankWarriorIndex], H[tankWarriorIndex], D[dpsWarriorIndex], H[dpsWarriorIndex], B);
+        double nextChoice = maxDamageForPair;
+        double maxChoice = 0.0;
+        while(nextChoice > maxChoice){
+            maxChoice = nextChoice;
+            for(int other = 0; other < N; other++){
+                if(other == dpsWarriorIndex || other == tankWarriorIndex){
+                    continue;
+                }
+                int otherWarDmg = D[other];
+                int otherWarHP = H[other];
+                double replaceTank = getDmg(otherWarDmg, otherWarHP, D[dpsWarriorIndex], H[dpsWarriorIndex], B);
+                double replaceDps = getDmg(D[tankWarriorIndex], H[tankWarriorIndex], otherWarDmg, otherWarHP, B);
+                if(replaceTank > nextChoice){
+                    tankWarriorIndex = other;
+                    nextChoice = replaceTank;
+                }else if (replaceDps > nextChoice){
+                    dpsWarriorIndex = other;
+                    nextChoice = replaceDps;
+                }
+            }
+        }
+        return maxChoice;
+    }
+
+    public double getMinExpectedHorizontalTravelDistance(int N, int[] H, int[] A, int[] B) {
+        //A[i],H[i] & B[i],H[i] represent a belt i. There are N belts.
+        //Having the option to force 1 belt to go left or right
+        //First let's calculate our expected horizontal travel distance if we DON'T get to choose.
+        class Belt implements Comparable<Belt>{
+            int height;
+            int startX;
+            int endX;
+            double halfLength;
+            double areaCovered;
+            double timeOptimizedIfLeft;
+            double timeOptimizedIfRite;
+            double bestTimeSaved;
+            double averageDropResponsibility;
+            ArrayList<Belt> droppedOntoFrom = new ArrayList<>();
+            ArrayList<Belt> droppingOnto = new ArrayList<>();
+
+            Belt(int height, int startX, int endX){
+                this.height = height;
+                this.startX = startX;
+                this.endX = endX;
+                this.halfLength = (double)(endX-startX)/2.0;
+                this.timeOptimizedIfLeft = 0.0;
+                this.timeOptimizedIfRite = 0.0;
+                this.averageDropResponsibility = 0.0;
+                this.areaCovered = 0.0;
+                this.bestTimeSaved = 0.0;
+                this.droppedOntoFrom = new ArrayList<>();
+                this.droppingOnto = new ArrayList<>();
+            }
+
+            void addDroppingOnto(Belt to){
+                if(!droppingOnto.contains(to)){
+                    droppingOnto.add(to);
+                }
+            }
+
+            void addDroppedOntoFrom(Belt from){
+                if(droppedOntoFrom.contains(from)){
+                    return;
+                }
+                this.droppedOntoFrom.add(from);
+                this.averageDropResponsibility = droppedOntoFrom.size() * halfLength;
+                calculateDistance(from);
+            }
+
+            //Gives the minimum time if left or right is picked here (we don't care which one is actually
+            private void calculateDistance(Belt belt){
+                double timeTravelledIfForcedLeft = 0.0;
+                double timeTravelledIfForcedRite = 0.0;
+                //How much distance does it drop it from my top's right?
+                //If go left, distance is currentBelt.endX-slaveBelt.startX
+                //If go right, distance is slaveBelt.endX-currentBelt.endX
+
+                //Top's left?
+                //If go left, currentBelt.startX-slaveBelt.startX
+                //If go right, slaveBelt.endX-currentBelt.startX
+                double leftLoad = this.calculateRandomDistance(belt.startX);
+                double rightLoad = this.calculateRandomDistance(belt.endX);
+                double endCoord = 0;
+                if(leftLoad > 0 && rightLoad >0){
+                    endCoord = ((double)belt.startX+belt.endX)/2;
+                    this.areaCovered = this.areaCovered+(belt.endX-belt.startX);
+                }
+                else if(leftLoad > 0){
+                    endCoord = belt.startX;
+                    this.areaCovered = this.areaCovered+(this.endX-belt.startX);
+                }
+                else if(rightLoad > 0)
+                {
+                    endCoord = belt.endX;
+                    this.areaCovered = this.areaCovered+(this.startX-belt.endX);
+                }
+                double goLeft = endCoord-this.startX;
+                double goRight = this.endX-endCoord;
+                timeTravelledIfForcedLeft += goLeft;
+                timeTravelledIfForcedRite += goRight;
+                double localAverage = timeTravelledIfForcedLeft+timeTravelledIfForcedRite/2;
+                //avg is 2500, we big place
+                //left drops @endCoord=1000 go only 1000. 1000 total
+                //rite drops @endCoord=1000 go 4000. 4000 total
+                //In total, we account for 2.k if we do avg
+                //LeftBetter is 2500-1000
+                //RiteBetter is 2500-4000
+                this.timeOptimizedIfLeft += localAverage-timeTravelledIfForcedLeft;
+                this.timeOptimizedIfRite += localAverage-timeTravelledIfForcedRite;
+                this.bestTimeSaved = this.averageDropResponsibility-Math.min(this.timeOptimizedIfLeft, this.timeOptimizedIfRite);
+            }
+            double calculateRandomDistance(int dropPoint){
+                if((areaCovered == (endX-startX)) && (droppedOntoFrom.size() == 0)){
+                    return 0.0;
+                }
+
+                if(dropPoint <= startX || dropPoint >= endX){
+                    return 0.0;
+                }
+
+                return this.halfLength + this.averageDropResponsibility;
+            }
+
+            double calculateTimeSpentOnThisBeltGivenAllRandom(){
+                if((areaCovered == (endX-startX)) && (droppedOntoFrom.size() == 0)){
+                    return 0.0;
+                }
+
+                //Imagine half area covered. Area 1000, 500 covered. Estimated time on is 500 from dropping, but now its
+                //250 from dropping
+                double randomlyDroppingOnThisBelt = (endX-startX-areaCovered)/2;
+                double sumOfRandomlyBeingOnPriors = 0.0;
+                for(int i = 0; i < droppedOntoFrom.size(); i++){
+                    //stub
+                }
+                return randomlyDroppingOnThisBelt + sumOfRandomlyBeingOnPriors;
+            }
+
+            @Override
+            public int compareTo(Belt that) {
+                //highest first via sorting
+                return - Integer.compare(this.height, that.height);
+            };
+        }
+
+        //Create a set of ranges from the belts, ordered by height... No no no.
+        //exit point
+        ArrayList<Belt> beltsByHeight = new ArrayList<>();
+        ArrayList<Belt> beltsByTimeSaved = new ArrayList<>();
+        //N = 5
+        //H = [2, 8, 5, 9, 4]
+        //A = [5000, 2000, 7000, 9000, 0]
+        //B = [7000, 8000, 11000, 11000, 4000]
+        for(int i = 0; i < N; i++){
+            Belt belty = new Belt(H[i],A[i],B[i]);
+            beltsByHeight.add(belty);
+            beltsByTimeSaved.add(belty);
+        }
+        Collections.sort(beltsByHeight);
+        //belt highest up first
+        for(int beltID = 0; beltID < beltsByHeight.size(); beltID++){
+            Belt currentBelt = beltsByHeight.get(beltID);
+            boolean leftLoaded = false;
+            boolean riteLoaded = false;
+            //for all lower belts:
+            for(int loadBearingBelt = beltID+1; loadBearingBelt < beltsByHeight.size(); loadBearingBelt++){
+                Belt slaveBelt = beltsByHeight.get(loadBearingBelt);
+
+                //Check to see if currentBelt is bigger and onTopOf slaveBelt. If so, cover all its area
+                if(currentBelt.startX <= slaveBelt.startX && currentBelt.endX >= slaveBelt.endX){
+                    slaveBelt.areaCovered = slaveBelt.halfLength*2;
                     continue;
                 }
 
-                double dpsDmgDone = timeLived[tank]*D[dps] + timeLived[dps]*D[dps];
-                maxDamageForPair = Math.max(maxDamageForPair, dpsDmgDone+tankDmgDone);
+                //Account for where loads will land, rolling off of currentBelt's left/right exits
+                double leftLoad, riteLoad;
+                if(!leftLoaded){
+                    leftLoad = slaveBelt.calculateRandomDistance(currentBelt.startX);
+                    if(leftLoad > 0){
+                        slaveBelt.addDroppedOntoFrom(currentBelt);
+                        currentBelt.addDroppingOnto(slaveBelt);
+                        leftLoaded = true;
+                    }
+                }
+                if(!riteLoaded){
+                    riteLoad = slaveBelt.calculateRandomDistance(currentBelt.endX);
+                    if(riteLoad > 0){
+                        slaveBelt.addDroppedOntoFrom(currentBelt);
+                        currentBelt.addDroppingOnto(slaveBelt);
+                        riteLoaded = true;
+                    }
+                }
             }
         }
-        return maxDamageForPair;
+        Collections.sort(beltsByTimeSaved, (b1, b2) -> {
+            //descending order
+            return Double.compare(b2.bestTimeSaved, b1.bestTimeSaved);
+        });
+        return 0.0;
     }
 }

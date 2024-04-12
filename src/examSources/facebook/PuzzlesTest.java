@@ -261,4 +261,13 @@ class PuzzlesTest {
         double result3 = puzzles.getMaxDamageDealt(4, new int[]{1,1,2,3}, new int[]{1,2,1,100}, 8);
         assertTrue(Math.abs(62.750000 - result3) < epsilon);
     }
+
+    @Test
+    void getMinExpectedHorizontalTravelDistance() {
+        double epsilon = 0.000001;
+        double result1 = puzzles.getMinExpectedHorizontalTravelDistance(2, new int[]{10,20}, new int[]{100000,400000}, new int[]{600000,800000});
+        assertTrue(Math.abs(155000.00000000 - result1) < epsilon);
+        double result2 = puzzles.getMinExpectedHorizontalTravelDistance(5, new int[]{2,8,5,9,4}, new int[]{5000, 2000, 7000, 9000, 0}, new int[]{7000, 8000, 11000, 11000, 4000});
+        assertTrue(Math.abs(36.50000000 - result2) < epsilon);
+    }
 }
